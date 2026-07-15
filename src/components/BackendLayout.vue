@@ -1,6 +1,6 @@
 <template>
     <div class="backend-layout">
-        <el-container>
+        <el-container class="main-container">
             <Sidebar />
         <el-container>
             <el-header>

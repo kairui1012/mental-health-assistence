@@ -20,7 +20,7 @@ const routes = [
                 component: ()=> import('@/views/dashboard.vue'),
                 meta:{
                     title:'知识文章',
-                    icon:' ChatLineSquare'
+                    icon:'ChatLineSquare'
                 }
             },
              {
@@ -42,6 +42,8 @@ const routes = [
         ]
     }
 ]
+
+console.log(routes[0].children.map(item => item.meta))
 
 const router = createRouter({
     history: createWebHistory(),
