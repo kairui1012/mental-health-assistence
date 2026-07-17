@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BackendLayout from '@/components/BackendLayout.vue'
-import nima from '@/components/HelloWorld.vue'
 
 const routes = [
     {
@@ -17,7 +16,7 @@ const routes = [
             },
              {
                 path: 'knowledge',
-                component: ()=> import('@/views/dashboard.vue'),
+                component: ()=> import('@/views/knowledge.vue'),
                 meta:{
                     title:'知识文章',
                     icon:'ChatLineSquare'

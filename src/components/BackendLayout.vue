@@ -2,14 +2,14 @@
     <div class="backend-layout">
         <el-container class="main-container">
             <Sidebar />
-        <el-container>
-            <el-header>
-                <Navbar />
-            </el-header>
-            <el-main>
-                <router-view />
-            </el-main>
-        </el-container>
+            <el-container>
+                <el-header>
+                    <Navbar class="navbar" />
+                </el-header>
+                <el-main class="main-container">
+                    <router-view class="content-container"/>
+                </el-main>
+            </el-container>
         </el-container>
     </div>
 </template>
@@ -23,7 +23,7 @@ import Navbar from './Navbar.vue'
 .backend-layout {
     height: 100vh;
     .el-header {
-        height: 74px !important;
+        height: 71px !important;
     }
     .main-container {
         height: 100%;
