@@ -8,7 +8,16 @@
         class="menu-style"
         >
         <div class="brand">
-            <el-image style="width: 50px;height: 50px;margin-right: 10px;" :src="iconURL" alt="logo" />
+            <el-image
+                :style="{
+                    width: isCollapse ? '40px' : '50px',
+                    height: '50px',
+                    marginRight: '10px'
+                }"
+                :src="iconURL"
+                fit="contain"
+                alt="logo"
+            />
             <div v-show="!isCollapse" class="info-card">
                 <h1 class="brand-title">心里健康AI助手</h1>
                 <p class="brand-subtitle">管理后台</p>
