@@ -6,8 +6,10 @@
                 <el-header>
                     <Navbar class="navbar" />
                 </el-header>
-                <el-main class="main-container">
-                    <router-view class="content-container"/>
+                <el-main class="main-content">
+                    <div class="content-container">
+                        <router-view />
+                    </div>
                 </el-main>
             </el-container>
         </el-container>
