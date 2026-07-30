@@ -30,15 +30,19 @@
                         action="#" 
                         :before-upload="beforeUpload"
                         :http-request="handleUploadRequest"
+                        :show-file-list="false"
                         accept="image/*"
                         :file-list="[{name: 'name', url: 'url'}]">
                         <div v-if="!imgUrl"  class="cover-placerholder">
                             <p>点击上传封面</p>
                         </div>
                         <img v-else :src="imgUrl" class="cover-image" alt="封面图片">
-                        <el-button size="small" type="primary">点击上传</el-button>
-                        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
                     </el-upload>
+                    <div v-if="imgUrl" class="cover-remove">
+                        <el-button type="danger" @click="handleRemove" size="mini">
+                            移除封面
+                        </el-button>
+                    </div>
                 </div>
             </el-form-item>
        </el-form>
@@ -48,6 +52,8 @@
 <script setup>
 import { ElMessage } from 'element-plus';
 import { ref,reactive,computed } from 'vue';
+import { uploadFile } from '../api/admin';
+import { fileBaseUrl } from '../config';
 
 const props = defineProps({
     modelValue:{ 
@@ -122,11 +128,25 @@ const beforeUpload = (file) =>
     return true
 }
 
-const handleUploadRequest = () =>
+const handleUploadRequest = async ({file}) =>
 {
+    //uuid generate
+    const businessId = crypto.randomUUID()
 
+    const fileRes = await uploadFile(file,{
+        businessId:businessId
+    })
+
+    //combine the fully image address
+    imgUrl.value = fileBaseUrl + fileRes.filePath
+    formData.coverImage = fileRes.filePath
 }
 
+const handleRemove = () =>
+{
+    imgUrl.value=''
+    formData.coverImage=''
+}
 </script>
 
 <style lang="scss" scoped>
@@ -139,5 +159,10 @@ const handleUploadRequest = () =>
     justify-content: center;
     color: #8b949e;
     background: #f6f8fa;
+}
+.cover-image{
+    width: 200px;
+    height: 120px;
+    display: block;
 }
 </style>
