@@ -29,7 +29,7 @@
             </el-table-column>
             <el-table-column label="作者" prop="authorName" width="150" />
             <el-table-column label="阅读量" prop="readCount" width="150" />
-            <el-table-column label="发布时间" prop="publishedAt" width="150" />     
+            <el-table-column label="发布时间" prop="updatedAt" width="150" />     
             <el-table-column label="操作" width="240" fixed="right" > 
                 <template #default="scope">
                     <el-button text type="primary">
@@ -54,7 +54,7 @@
             :total="pagination.total" 
             @change="handleChange" 
         />
-        <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" />
+        <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" @success="handleSuccess" />
     </div>
 </template>
 
@@ -124,6 +124,10 @@ const tableData = ref([])
 
 const dialogVisible = ref(false)
 
+const handleSuccess = () => {
+
+}
+
 onMounted(async ()=>{
     const data =  await categoryTree()
     categories.value = data.map(item => {
@@ -142,6 +146,8 @@ const handleChange = (page) => {
     pagination.currentPage = page
     handleSearch()
 }
+
+
 </script>
 
 
