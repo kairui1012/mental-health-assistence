@@ -24,6 +24,7 @@ export function uploadFile(file,businessInfo)
     formData.append('businessField','cover')
 
     return service.post('file/upload',formData,{
+            timeout:30000,
             headers:{
             'Content-Type':'multipart/form-data'
         }
@@ -33,4 +34,33 @@ export function uploadFile(file,businessInfo)
 
 export function createArticle(data){
     return service.post('/knowledge/article',data)
+}
+
+export function updateArticle(id,data){
+    return service.put(`/knowledge/article/${id}`,data)
+}
+
+export function getArticleDetail(id){
+    return service.get(`/knowledge/article/${id}`)
+}
+export function changeArticleStatus(id,data){
+    // `data` 已经是状态请求体，不能再包一层，否则服务端会收到
+    // { data: { status: 2 } } 而不是期望的 { status: 2 }。
+    return service.put(`/knowledge/article/${id}/status`, data)
+}
+
+export function deleteArticle(id){
+    return service.delete(`/knowledge/article/${id}`)
+}
+
+export function getConsultationPage(params){
+    return service.get(`/psychological-chat/sessions`,{params})
+}
+
+export function getSessionDetail(sessionId){
+    return service.get(`/psychological-chat/sessions/${sessionId}/messages`)
+}
+
+export function emotionalPage(params){
+    return service.get('/emotion-diary/admin/page',{params})
 }

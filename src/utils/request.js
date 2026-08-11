@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 const service = axios.create({
     baseURL: '/api',
-    timeout: 5000,
+    timeout: 30000,
 })
 
 service.interceptors.request.use(config => 
@@ -24,13 +24,13 @@ service.interceptors.response.use(response =>
     {
         // Do something before response is sent
         const {data,config} = response
-        if( data.code === '200' )
+        if( String(data.code) === '200' )
         {
             return data.data;
         }
         else
         {
-            if(data.code === '-1')
+            if(String(data.code) === '-1')
             {
                 if(!config.url?.includes('/login'))
                 {
@@ -39,12 +39,13 @@ service.interceptors.response.use(response =>
                     localStorage.removeItem('token')
                     localStorage.removeItem('userInfo')
                     window.location.href = '/auth/login'
+                    return Promise.reject(new Error(data.msg || '登录已过期'))
                 }
             }
             else
             {
-                ElMessage.error(data.msg || '登陆过期,请重新登陆')
-                return Promise.reject('网络异常')
+                ElMessage.error(data.msg || '请求失败，请稍后重试')
+                return Promise.reject(new Error(data.msg || '请求失败'))
             }
         }
         return response;

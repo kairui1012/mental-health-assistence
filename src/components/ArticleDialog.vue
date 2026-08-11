@@ -9,7 +9,7 @@
             <el-form-item label="文章标题" prop="title">
                 <el-input v-model="formData.title" placeholder="请输入文章标题 " maxlength="200" show-word-limit clearable/>
             </el-form-item>
-            <el-form-item label="所属分类" prop="category">
+            <el-form-item label="所属分类" prop="categoryId">
                 <el-select v-model="formData.categoryId" placeholder="请选择分类">
                     <el-option v-for="item in props.categories" :key="item.value" :label="item.label" :value="item.value">
                     </el-option>
@@ -62,9 +62,9 @@
        </div>
        <template #footer>
         <div>
-            <el-button @click="btnPreview = !btnPreview">{{ btnPreview?'隐藏预览':'预览效果'}}</el-button>
+            <el-button @click="btnPreview = !btnPreview">{{btnPreview?'隐藏预览':'预览效果'}}</el-button>
             <el-button @click="handleClose">取消</el-button>
-            <el-button type="primary" @click="handleSubmit()" :loading="loading">创建文章</el-button>
+            <el-button type="primary" @click="handleSubmit" :loading="loading"> {{isEdit?'更新文章':'编辑文章'}}</el-button>
         </div>
        </template>
     </el-dialog>
@@ -72,8 +72,8 @@
 
 <script setup>
 import { ElMessage } from 'element-plus';
-import { ref,reactive,computed, nextTick } from 'vue';
-import { createArticle, uploadFile } from '../api/admin';
+import { ref,reactive,computed,nextTick,watch, onMounted } from 'vue';
+import { createArticle, updateArticle, uploadFile } from '../api/admin';
 import { fileBaseUrl } from '../config';
 import RichTextEditor from './RichTextEditor.vue';
 
@@ -85,10 +85,16 @@ const props = defineProps({
     categories:{
         type:Array,
         default:()=>[]
+    },
+    article:{
+        type:Object,
+        default:null
     }
 })
 
 const emit = defineEmits(['update:modelValue','success'])
+
+const isEdit = computed(()=>!!props.article?.id)
 
 const dialogVisible = computed({
     get(){
@@ -99,8 +105,12 @@ const dialogVisible = computed({
     }
 })
 
-const handleClose = () =>{
-
+const handleClose = () => {
+    formRef.value.resetFields()
+    businessId.value = null
+    handleRemove()
+    formData.tagArray = []
+    emit('update:modelValue',false)
 }
 
 const formData = reactive({
@@ -110,6 +120,7 @@ const formData = reactive({
     "categoryId": 1,
     "summary": "",
     "tags": "",
+    "tagArray": [],
     "id": ""
 })
 
@@ -140,7 +151,7 @@ const imgUrl = ref('')
 const beforeUpload = (file) => 
 {
     const isImage = file.type.startsWith('image/')
-    const isLt5M = file.size /1024 /1012 <5
+    const isLt5M = file.size / 1024 / 1024 < 5
     if(!isImage)
     {
         ElMessage.error('上传图片失败，请检查图片格式')
@@ -154,18 +165,45 @@ const beforeUpload = (file) =>
     return true
 }
 
+const businessId = ref(null)
+
+watch(() => props.article, (newVal) => {
+    if (newVal) {
+        nextTick(()=>{
+            Object.assign(formData, newVal, {
+                tagArray: newVal.tags ? newVal.tags.split(',').filter(Boolean) : []
+            })
+            businessId.value = newVal.id
+            imgUrl.value = newVal.coverImage
+                ? `${fileBaseUrl.replace(/\/$/, '')}/${newVal.coverImage.replace(/^\//, '')}`
+                : ''
+        })
+    } else {
+        Object.assign(formData, {
+            title: '', content: '', coverImage: '', categoryId: 1,
+            summary: '', tags: '', tagArray: [], id: ''
+        })
+        businessId.value = null
+        imgUrl.value = ''
+    }
+})
+
 const handleUploadRequest = async ({file}) =>
 {
     //uuid generate
-    const businessId = crypto.randomUUID()
+    businessId.value = crypto.randomUUID()
 
-    const fileRes = await uploadFile(file,{
-        businessId:businessId
-    })
+    try {
+        const fileRes = await uploadFile(file, {
+            businessId: businessId.value
+        })
 
-    //combine the fully image address
-    imgUrl.value = fileBaseUrl + fileRes.filePath
-    formData.coverImage = fileRes.filePath
+        imgUrl.value = `${fileBaseUrl.replace(/\/$/, '')}/${fileRes.filePath.replace(/^\//, '')}`
+        formData.coverImage = fileRes.filePath
+    } catch (error) {
+        ElMessage.error('封面上传失败，请稍后重试')
+        throw error
+    }
 }
 
 const handleRemove = () =>
@@ -199,22 +237,35 @@ const formRef = ref()
 const loading = ref(false)
 
 const handleSubmit = async () => {
-    await formRef.value.validate((valid,fields)=>{
-        if(valid){
-            loading.value = true
-        }
+    try {
+        await formRef.value.validate()
+        loading.value = true
         const submitData = {
             ...formData,
             tags: formData.tagArray.join(',')
         }
         delete submitData.tagArray
 
-        createArticle(submitData).then(res=>{
-            loading.value = false
-            emit('success')
-        })
-    })
+        if (isEdit.value) {
+
+            submitData.id = null
+            createArticle(submitData).then(res => {
+                loading.value = false
+                emit('success')
+            })
+        } else {
+            updateArticle(props.article.id,submitData).then(res =>{
+                loading.value = false
+                emit('success')
+            })
+        }
+        emit('success')
+    } catch (error) {
+        // 表单与请求错误分别由表单和请求拦截器提示
+    }
 }
+
+
 </script>
 
 <style lang="scss" scoped>
