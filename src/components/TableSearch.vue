@@ -1,5 +1,5 @@
 <template>
-    <el-form :model="formData">
+    <el-form ref="formRef" :model="formData">
 
         <el-row :gutter="24">
             <template v-for="item in formItemAttrs" :key="item.prop">
@@ -34,8 +34,8 @@
 </template>
 <script setup>
 import { reactive,ref,computed } from 'vue'
-const formData = reactive({
-})
+const formData = reactive({})
+const formRef = ref()
 
 const props = defineProps({
     formItem:{
@@ -45,15 +45,14 @@ const props = defineProps({
 })
 const emit = defineEmits(['search'])
 
-const formItemAttrs = computed(()=>{
-    const { formItem } = props
-    formItem.forEach(item => {
-        item.col = {
+const formItemAttrs = computed(() =>
+    props.formItem.map(item => ({
+        ...item,
+        col: {
             xs: 24, sm: 12, md: 8, lg: 6, xl: 6
         }
-    })
-    return formItem
-})
+    }))
+)
 
 const isComp = (comp) => {
     return{
@@ -64,9 +63,8 @@ const isComp = (comp) => {
 const handleSearch = () => {
     emit('search',formData)
 }
-const handleReset = (formEl) => {
-    if(formEl) return
-    formEl.redetFields()
+const handleReset = () => {
+    formRef.value?.resetFields()
     emit('search',formData)
 }
 </script>

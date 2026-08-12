@@ -1,7 +1,7 @@
 <template>
     <div>
         <PageHead title="咨询记录"></PageHead>
-        <el-table :data="tableData" style="width: 100%">
+        <el-table :data="tableData" style="width: 100%; margin-top: 24px;">
             <el-table-column label="会话id" width="100">
                 <template #default="scope">
                     <el-avatar>{{scope.row.userNickname}}</el-avatar>
@@ -69,7 +69,7 @@
             </div>
         </div>
         <template #footer>
-            <el-button @click="showDetailDialog.value = false">关闭</el-button>
+            <el-button @click="showDetailDialog = false">关闭</el-button>
         </template>
         </el-dialog>
     </div>

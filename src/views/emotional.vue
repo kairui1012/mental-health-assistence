@@ -1,9 +1,8 @@
 <template>
     <div>
         <PageHead title="情绪日志"></PageHead>
-        <TableSearch class="knowledge-search" :formItem="formItem" @search="handleSearch" />
-        
-        <el-table :data="tableData" style="width: 100%">
+        <TableSearch style="margin-top: 24px;" :formItem="formItem" @search="handleSearch" />
+        <el-table :data="tableData" style="width: 100%" >
             <el-table-column prop="userId" label="id" width="80" />
             <el-table-column label="会话ID" width="80">
                 <template #default="scope">
@@ -233,10 +232,10 @@ const getRiskLevelText = (riskLevel) => {
 const formItem = [
     { comp: 'input', prop: 'userId', label: '用户ID', placeholder: '请输入用户ID' },
     {
-        comp: 'select', prop: 'moodScreRange', label: '情绪评分', placeholder: '请选择情绪评分范围', options: [
+        comp: 'select', prop: 'moodScoreRange', label: '情绪评分', placeholder: '请选择情绪评分范围', options: [
             { label: '低分(1-3)', value: '1-3' },
             { label: '中分(4-6)', value: '4-6' },
-            { label: '低分(7-10)', value: '7-10' }]
+            { label: '高分(7-10)', value: '7-10' }]
     }
 ]
 
@@ -253,10 +252,20 @@ const pagination = reactive({
 })
 
 const handleSearch = async (searchData = {}) => {
-    formData.value = searchData
+    formData.value = { ...searchData }
+
+    const { moodScoreRange, ...filters } = formData.value
 
     const params = {
-        ...pagination, ...formData.value
+        current: pagination.currentPage,
+        size: pagination.size,
+        ...filters
+    }
+
+    if (moodScoreRange) {
+        const [minMoodScore, maxMoodScore] = moodScoreRange.split('-').map(Number)
+        params.minMoodScore = minMoodScore
+        params.maxMoodScore = maxMoodScore
     }
 
     const { records, total } = await emotionalPage(params)
