@@ -69,7 +69,7 @@
             </div>
         </div>
         <template #footer>
-            <el-button @click="showDetailDialog.value = false"></el-button>
+            <el-button @click="showDetailDialog.value = false">关闭</el-button>
         </template>
         </el-dialog>
     </div>

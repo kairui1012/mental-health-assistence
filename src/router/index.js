@@ -63,8 +63,6 @@ const routes = [
     },
 ]
 
-console.log(routes[0].children.map(item => item.meta))
-
 const router = createRouter({
     history: createWebHistory(),
     routes
