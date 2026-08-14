@@ -7,7 +7,7 @@
                 </el-icon>
             </el-button>
             <p class="page-title">
-                导航栏
+                {{route.meta.title}}
             </p>
         </div>
         <div class="flex-box">
@@ -36,6 +36,13 @@
 <script setup>
 import { ref } from 'vue';
 import { useAdminStore } from '@/stores/admin';
+import { useRouter,useRoute } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { logout } from '../api/admin';
+
+const router = useRouter()
+const route = useRoute()
+
 const handleCollapse = ()=>
 {
     useAdminStore().toggleCollapse()
@@ -45,7 +52,20 @@ const handleCommand = (command)=>
 {
     if (command === 'logout')
     {
-        
+        ElMessageBox.confirm('确定退出登录吗?','提示',{
+            confirmButtonText:'确定',
+            cancelButtonText:'取消',
+            type:'warning'
+        }).then(async () => {
+            try {
+                await logout()
+                localStorage.removeItem('token')
+                localStorage.removeItem('userInfo')
+                router.push('/auth/login')
+            } catch (error) {
+                ElMessage.error('退出登录失败，请稍后重试')
+            }
+        }).catch(() => {})
     }
 }
 </script>

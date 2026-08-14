@@ -10,7 +10,9 @@ service.interceptors.request.use(config =>
     {
         // Do something before request is sent
         const token = localStorage.getItem('token')
-        if(token && !config.url?.includes('/login')){
+        const isPublicRequest = config.url?.includes('/login') || config.url?.includes('/user/add')
+
+        if(token && !isPublicRequest){
             config.headers['token'] = token
         }
         return config;
@@ -32,7 +34,9 @@ service.interceptors.response.use(response =>
         {
             if(String(data.code) === '-1')
             {
-                if(!config.url?.includes('/login'))
+                const isPublicRequest = config.url?.includes('/login') || config.url?.includes('/user/add')
+
+                if(!isPublicRequest)
                 {
                     ElMessage.error(data.msg || '登陆过期,请重新登陆')
 
