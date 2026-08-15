@@ -1,18 +1,61 @@
 <template>
+    <!-- 咨询页面 -->
     <div class="consultation-container">
         <div class="sidebar">
-            <!-- AI 助手信息 -->
+            <!-- 助手信息 -->
             <div class="ai-assistant-info">
                 <div class="breathing-circle">
                     <el-image style="width: 25px; height: 25px" :src="iconURL" />
                 </div>
-                <div class="assistant-name">AI助手</div>
+                <div class="assistant-name">心理健康 AI 助手</div>
                 <div class="online-status">
                     <div class="status-dot"></div>
                     在线服务中
                 </div>
             </div>
+            <!-- 会话区域：历史信息 -->
+            <div class="session-history">
+                <h4 class="session-title">会话列表</h4>
+                <div class="session-list">
+                    <div v-for="session in sessionList" :key="session.id" @click="handleSessionClick(session)"
+                        class="session-item">
+                        <div class="session-info">
+                            <div class="session-title">
+                                <span>{{ session.sessionTitle }}</span>
+                                <div class="session-meta">
+                                    <span class="session-time">{{ session.startedAt }}</span>
+                                </div>
+                                <div class="session-preview">
+                                    {{ session.lastMessageContent }}
+                                </div>
+                                <div class="session-stats">
+                                    <span>
+                                        <el-icon>
+                                            <ChatRound />
+                                        </el-icon>
+                                        {{ session.messageCount || 0 }}
+                                    </span>
+                                    <span>
+                                        <el-icon>
+                                            <Clock />
+                                        </el-icon>
+                                        {{ session.durationMinutes || 0 }} 分钟
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="session-actions">
+                                <el-button text type="danger" size="mini" @click="handleDeleteSession(session.id)">
+                                    <el-icon>
+                                        <DeleteFilled />
+                                    </el-icon>
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- 聊天区域 -->
         <div class="chat-main">
             <div class="chat-header">
                 <div class="header-left">
@@ -20,8 +63,8 @@
                         <el-image style="width: 30px; height: 30px" :src="iconUrl1" />
                     </div>
                     <div class="chat-info">
-                        <h2>AI助手</h2>
-                        <p>您的贴心AI健康助手</p>
+                        <h2>心理健康 AI 助手</h2>
+                        <p>陪伴您梳理情绪与心事</p>
                     </div>
                 </div>
                 <el-button circle @click="createNewFrontendSession" title="新建会话">
@@ -30,33 +73,60 @@
                     </el-icon>
                 </el-button>
             </div>
-            <!-- 聊天消息区 -->
+            <!-- 历史消息 -->
             <div class="chat-messages">
-                <!-- 欢迎用语 -->
+                <!-- 初始欢迎语 -->
                 <div class="message-item ai-message" v-if="message.length === 0">
                     <div class="message-avatar">
                         <el-image style="width: 18px; height: 18px" :src="iconURL" />
                     </div>
                     <div class="message-content">
                         <div class="message-bubble">
-                            <p>你好 我是你的ai助手</p>
+                            <p>您好，我是您的心理健康 AI 助手。很高兴在这里陪伴您。</p>
                         </div>
                         <div class="message-time">
                             刚刚
                         </div>
                     </div>
                 </div>
+                <!-- 消息列表 -->
+                <div v-for="msg in message" :key="msg.id" class="message-item"
+                    :class="msg.senderType === 1 ? 'user-message' : 'ai-message'">
+                    <div class="message-avatar">
+                        <el-image v-if="msg.senderType === 1" style="width: 18px; height: 18px" :src="iconUrl2" />
+                        <el-image v-if="msg.senderType === 2" style="width: 18px; height: 18px" :src="iconUrl" />
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <!-- AI正在思考中 -->
+                            <div v-if="msg.senderType === 2 && isAiTyping && !msg.content" class="typing-indicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <!-- AI错误提示 -->
+                            <div v-else-if="msg.isError" class="error-message">
+                                <p>{{ msg.content }}</p>
+                            </div>
+                            <!-- AI正常的返回消息 -->
+                            <MarkdownRenderer v-else-if="msg.senderType === 2 && !msg.isError " :content="msg.content" :is-ai-message="true"/>
+
+                            <p v-else-if="msg.content" v-html="formatMessageContent(msg.content)">
+
+                            </p>
+                        </div>
+                        <div class="message-time">{{ msg.senderType === 2 && isAiTyping ? '正在输入中...' : msg.createdAt }}
+                        </div>
+                    </div>
+                </div>
             </div>
-            <!-- 消息输入区 -->
+            <!-- 消息输入 -->
             <div class="chat-input">
                 <div class="input-container">
-                    <el-input v-model="userMessage" placeholder="请输入您想要分享的内容" type="textarea" :rows="3"
-                        :disabled="isAiTyping"
-                        @keydown="handleKeyDown"
-                        class="message-input"
-                        />
+                    <el-input v-model="userMessage" placeholder="请输入您想分享的内容" type="textarea" :rows="3"
+                        :disabled="isAiTyping" @keydown="handleKeyDown" class="message-input" />
                 </div>
-                <el-button type="primary" class="send-btn">
+                <el-button type="primary" class="send-btn" @click="sendMessage">
                     <el-icon>
                         <Promotion />
                     </el-icon>
@@ -67,29 +137,150 @@
 </template>
 
 <script setup>
-import { Promotion } from '@element-plus/icons-vue';
-import { create } from 'axios';
-import { ref } from 'vue';
+// Element Plus 图标、Vue 响应式 API 与咨询会话接口。
+import { ChatRound, Clock, DeleteFilled, Plus, Promotion } from '@element-plus/icons-vue';
+import { ref, onMounted } from 'vue';
+import { startSession, getSessionList, deleteSession, getSessionDetail } from '../api/frontend';
+import { ElMessage } from 'element-plus';
+import MarkdownRenderer from '../components/MarkdownRenderer.vue';
 
+// 左侧助手信息和欢迎消息使用的机器人头像。
 const iconURL = new URL('@/assets/images/robot-fill.png', import.meta.url).href
+
+// 聊天顶部区域使用的点赞图标。
 const iconUrl1 = new URL('@/assets/images/like.png', import.meta.url).href
 
-const createNewFrontendSession = () => {
+const iconUrl2 = new URL('@/assets/images/users.png', import.meta.url).href
 
+// 顶部“新建会话”按钮的事件入口。
+const createNewFrontendSession = () => {
+    createNewSession()
 }
 
+// 创建仅用于前端交互的临时会话，首次发送消息后会由接口转为正式会话。
+const createNewSession = () => {
+    const newSession = {
+        sessionId: `temp_${Date.now()}`,
+        status: `TEMP`,
+        sessionTitle: `新对话`
+    }
+    currentSession.value = newSession
+}
+
+// 保存当前正在进行或被用户选中的会话对象。
+const currentSession = ref(null)
+
+// 保存接口返回的历史会话列表，供左侧会话栏循环展示。
+const sessionList = ref([])
+
+// 保存当前会话中的消息数据，用于判断是否显示欢迎语。
 const message = ref([])
+
+// 双向绑定消息输入框，保存用户正在输入的文字。
 const userMessage = ref('')
+
+// 标记 AI 是否正在生成回复，用来禁用输入并避免重复发送。
 const isAiTyping = ref(false)
 
+
+
+// Enter 单独按下时阻止默认换行；Shift + Enter 仍可保留为换行输入。
 const handleKeyDown = (e) => {
-    if(e.key === 'Enter' && !e.shiftKey){
+    if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
     }
 }
+
+// 校验输入与助手状态；临时会话发送首条消息时创建正式会话。
+const sendMessage = () => {
+    const content = userMessage.value.trim()
+    if (!content) return
+
+    if (isAiTyping.value) {
+        ElMessage.error('AI 助手正在整理回复，请稍候。')
+        return
+    }
+
+    userMessage.value = ''
+    if (!currentSession.value || currentSession.value.status === 'TEMP') {
+        startNewSession(content)
+    }
+
+}
+
+// 将首条消息提交给接口，并用接口返回的数据更新当前会话。
+const startNewSession = (initialMessage) => {
+    const sessionParams = {
+        initialMessage,
+    }
+    if (currentSession.value.sessionTitle === '新对话') {
+        sessionParams.sessionTitle = `AI助手 - ${new Date().toLocaleString()}`
+    }
+    else {
+        sessionParams.sessionTitle = currentSession.value.sessionTitle
+    }
+
+    startSession(sessionParams).then(res => {
+        const sessionData = {
+            sessionId: res.sessionId,
+            status: res.status,
+            sessionTitle: sessionParams.sessionTitle
+        }
+        if (currentSession.value && currentSession.value.status === 'TEMP') {
+            // 更新为正式会话
+            Object.assign(currentSession.value, sessionData)
+        } else {
+            currentSession.value = sessionData
+        }
+        getSessionDetail(sessionData.sessionId).then(res => {
+            message.value = res
+        })
+        getSessionPage()
+    })
+}
+
+// 获取第一页会话记录，供左侧会话列表展示。
+const getSessionPage = () => {
+    getSessionList({
+        pageNum: 1,
+        pageSize: 10
+    }).then(res => {
+        sessionList.value = res.records
+    })
+}
+
+// 从历史记录中切换当前会话。
+const handleSessionClick = (session) => {
+    getSessionDetail(session.id).then(res => {
+        message.value = res
+    })
+}
+
+// 请求删除指定会话。
+const handleDeleteSession = (sessionId) => {
+    deleteSession(sessionId).then(res => {
+        ElMessage.success('删除成功')
+        getSessionPage()
+    })
+}
+
+// 简单的换行逻辑
+const formatMessageContent = (content) => {
+    return content.replace(/\n/g,'<br>')
+}
+
+// 页面加载后初始化历史会话列表和一个新的临时会话。
+onMounted(() => {
+    getSessionPage()
+    createNewSession()
+})
+
+
+
 </script>
 
 <style lang="scss" scoped>
+/* 页面整体布局：固定宽度的侧栏与聊天主区域并排显示。 */
 .consultation-container {
     margin: 0 auto;
     width: 1200px;
@@ -155,6 +346,7 @@ const handleKeyDown = (e) => {
             }
         }
 
+        /* 左侧可滚动的历史会话卡片。 */
         .session-history {
             background: white;
             border-radius: 16px;
@@ -501,6 +693,7 @@ const handleKeyDown = (e) => {
         }
     }
 
+    /* 右侧当前咨询会话及消息输入区域。 */
     .chat-main {
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 252, 250, 0.98) 100%);
         border-radius: 20px;
