@@ -37,6 +37,10 @@
 .frontend-layout {
     background-color: #fff;
 
+    .main-content {
+        background: #fbfbfd;
+    }
+
     .navbar-container {
         max-width: 1200px;
         height: 100%;
