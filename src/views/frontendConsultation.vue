@@ -381,11 +381,6 @@ const startNewSession = (message) => {
         } else {
             currentSession.value = sessionData
         }
-        getSessionDetail(sessionData.sessionId)
-            .then(res => {
-                messages.value = res
-            })
-            .catch(() => { })
         getSessionPage()
 
         //添加用户消息
@@ -447,6 +442,8 @@ const startAIResponse = (sessionId, userMessage) => {
 
             if (eventName === 'done') {
                 isAiTyping.value = false
+                // 收到完成事件后再刷新情绪分析；不能依赖 abort 后未必触发的 onclose。
+                setTimeout(() => loadSessionEmotion(sessionId), 800)
                 controller.abort()
                 return
             }
@@ -462,10 +459,6 @@ const startAIResponse = (sessionId, userMessage) => {
         onerror: (err) => {
             handleError(err || 'AI回复失败')
             throw err
-        },
-        onclose: () => {
-            //开始情绪分析
-            loadSessionEmotion(currentSession.value.sessionId)
         }
     })
 }
@@ -558,7 +551,7 @@ onMounted(() => {
             border-radius: 16px;
             padding: 16px;
             box-shadow: none;
-            border: 4px solid #b5d65a;
+            border: 2px solid #b5d65a;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
 
@@ -613,7 +606,7 @@ onMounted(() => {
             border-radius: 16px;
             padding: 16px;
             box-shadow: none;
-            border: 4px solid #b5d65a;
+            border: 2px solid #b5d65a;
             margin-bottom: 20px;
             min-height: 250px;
             display: flex;
@@ -735,7 +728,7 @@ onMounted(() => {
             padding: 16px;
             margin-bottom: 20px;
             box-shadow: none;
-            border: 4px solid #b5d65a;
+            border: 2px solid #b5d65a;
             position: relative;
             overflow: hidden;
             min-height: 300px;
@@ -885,16 +878,16 @@ onMounted(() => {
                 .warm-suggestion {
                     background: #ffffff;
                     border-radius: 16px;
-                    padding: 12px;
+                    padding: 10px;
                     margin-bottom: 16px;
                     display: flex;
                     align-items: flex-start;
-                    gap: 10px;
+                    gap: 8px;
                     border: 2px solid #c6dd79;
                     box-shadow: none;
 
                     .suggestion-icon {
-                        font-size: 20px;
+                        font-size: 18px;
                         flex-shrink: 0;
                         margin-top: 2px;
                     }
@@ -904,16 +897,16 @@ onMounted(() => {
                         flex: 1;
 
                         .suggestion-title {
-                            font-size: 17px;
+                            font-size: 15px;
                             font-weight: 600;
                             color: #58752c;
-                            margin-bottom: 6px;
+                            margin-bottom: 4px;
                         }
 
                         .suggestion-text {
-                            font-size: 16px;
+                            font-size: 14px;
                             color: #465c26;
-                            line-height: 1.5;
+                            line-height: 1.4;
                         }
                     }
                 }
@@ -1196,9 +1189,9 @@ onMounted(() => {
                 flex: 1;
 
                 :deep(.message-input) {
-                    --el-input-focus-border-color: #a6c83b;
-                    --el-input-focus-color: #a6c83b;
-                    --el-input-hover-border-color: #c6dd79;
+                    --el-input-focus-border-color: #8e8e93;
+                    --el-input-focus-color: #8e8e93;
+                    --el-input-hover-border-color: #c8cbd1;
                 }
 
                 :deep(.el-textarea__inner) {
@@ -1214,8 +1207,8 @@ onMounted(() => {
 
                     &:focus {
                         background: #fff;
-                        border-color: #a6c83b;
-                        box-shadow: 0 0 0 4px rgba(166, 200, 59, 0.18), 0 0 16px rgba(166, 200, 59, 0.22);
+                        border-color: #8e8e93;
+                        box-shadow: 0 0 0 4px rgba(60, 60, 67, 0.1);
                     }
                 }
             }
