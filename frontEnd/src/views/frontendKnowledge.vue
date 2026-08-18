@@ -98,7 +98,7 @@ const recommendList = ref([])
 const pagination = reactive(
     {
         currentPage: 1,
-        size: 10,
+        size: 5,
         total: 0
     }
 )
@@ -182,6 +182,9 @@ onMounted(() => {
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             padding: 15px;
             height: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
 
             .section-title {
                 font-size: 12;
@@ -194,6 +197,9 @@ onMounted(() => {
             }
 
             .recommend-list {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;

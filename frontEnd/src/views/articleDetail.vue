@@ -3,7 +3,12 @@
         <div class="header-section">
             <div class="header-content">
                 <el-image style="width: 60px; height: 60px" :src="iconURL" />
+                <h1>文章内容</h1>
             </div>
+            <el-button class="back-button" @click="goBackToKnowledge">
+                <el-icon><ArrowLeft /></el-icon>
+                返回知识库
+            </el-button>
         </div>
         <div class="content">
             <div class="diary-card">
@@ -55,12 +60,18 @@
 
 </template>
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted,ref } from 'vue';
 import { getKnowledgeDetail } from '../api/frontend';
 import { dayjs } from 'element-plus';
-import { Avatar, Clock } from '@element-plus/icons-vue';
+import { ArrowLeft, Avatar, List, Platform } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 
 const iconURL = new URL('@/assets/images/book.png', import.meta.url).href
+const router = useRouter()
+
+const goBackToKnowledge = () => {
+    router.push('/knowledge')
+}
 
 const formatContent = (content) => {
   if (!content) return ''
@@ -108,14 +119,32 @@ onMounted(() => {
     }
 
     .header-section {
-        background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 100%);
-        color: white;
-        padding: 48px;
+        background: linear-gradient(135deg, #689f38 0%, #b7d84b 100%);
+        color: #fff;
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        flex-shrink: 0;
+        border-bottom: none;
+        box-shadow: 0 5px 18px rgba(104, 159, 56, 0.2);
+        backdrop-filter: blur(20px);
 
         .header-content {
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .back-button {
+            --el-button-text-color: #689f38;
+            --el-button-bg-color: #fff;
+            --el-button-border-color: #fff;
+            --el-button-hover-text-color: #557f2c;
+            --el-button-hover-bg-color: #f5fbe8;
+            --el-button-hover-border-color: #f5fbe8;
+            color: #689f38;
         }
     }
 
