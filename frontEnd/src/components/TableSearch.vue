@@ -1,0 +1,70 @@
+<template>
+    <el-form ref="formRef" :model="formData">
+
+        <el-row :gutter="24">
+            <template v-for="item in formItemAttrs" :key="item.prop">
+                <el-col v-bind="item.col">
+                    <el-form-item :label="item.label" :prop="item.prop">
+                        <component v-model="formData[item.prop]" :is="isComp(item.comp)" :placeholder="item.placeholder">
+                            <template v-if="item.comp === 'select'">
+                                <el-option key="all" label="全部" value="" />
+                                <el-option
+                                v-for="option in item.options || []"
+                                :key="option.value"
+                                :label="option.label"
+                                :value="option.value"
+                                />
+                            </template>
+                        </component>
+                    </el-form-item>
+                </el-col>
+            </template>
+        </el-row>
+
+        <el-row>
+            <el-button type="primary" @click="handleSearch">
+                查询
+            </el-button>
+            <el-button type="default" @click="handleReset">
+                重置
+            </el-button>
+        </el-row>
+
+    </el-form>
+</template>
+<script setup>
+import { reactive,ref,computed } from 'vue'
+const formData = reactive({})
+const formRef = ref()
+
+const props = defineProps({
+    formItem:{
+        type: Array,
+        default: () => []
+    }
+})
+const emit = defineEmits(['search'])
+
+const formItemAttrs = computed(() =>
+    props.formItem.map(item => ({
+        ...item,
+        col: {
+            xs: 24, sm: 12, md: 8, lg: 6, xl: 6
+        }
+    }))
+)
+
+const isComp = (comp) => {
+    return{
+        input: 'ElInput',
+        select: 'ElSelect'
+    }[comp]
+}
+const handleSearch = () => {
+    emit('search',formData)
+}
+const handleReset = () => {
+    formRef.value?.resetFields()
+    emit('search',formData)
+}
+</script>
