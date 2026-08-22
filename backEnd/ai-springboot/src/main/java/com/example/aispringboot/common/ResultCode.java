@@ -1,5 +1,9 @@
 package com.example.aispringboot.common;
 
+import lombok.Getter;
+
+@Getter
+
 public enum ResultCode {
     // 选举类的第一项必须要是枚举项
     SUCCESS("200", "操作成功"),
@@ -43,11 +47,4 @@ public enum ResultCode {
         this.msg = msg;
     }
 
-    public String getCode(){
-        return code;
-    }
-
-    public String getMsg(){
-        return msg;
-    }
 }
